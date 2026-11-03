@@ -1,5 +1,9 @@
-Temp readme
 # Fairfare: predicting the New York taxi fare at booking
+
+<p align="center">
+  <img src="media/fairfare_logo.png" alt="Project Logo" width="200">
+</p>
+
 
 Project 1 · Task A "The Fare" · team: Blevis Allushi, Geri Belba, Leandra Latifi
 
