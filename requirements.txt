@@ -1,6 +1,8 @@
-pandas
-pyarrow
-numpy
-scikit-learn
-matplotlib
+# Versions the results were produced with (Python 3.12). Newer versions will most likely work,
+# but tree splits / bootstrap draws are only guaranteed bit-identical with these.
+pandas==3.0.6
+pyarrow==24.0.0
+numpy==2.5.4
+scikit-learn==1.9.1
+matplotlib==3.11.2
 jupyter
