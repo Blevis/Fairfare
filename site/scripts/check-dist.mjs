@@ -15,6 +15,7 @@ for (const [, ref] of html.matchAll(/(?:src|href)="([^"#]+)"/g)) {
   if (!existsSync(join(dist, rel))) errors.push(`missing file for ${ref}`);
 }
 
+if (!existsSync(join(dist, "fairfare_report.pdf"))) errors.push("missing fairfare_report.pdf");
 for (const f of ["model.json", "zones.json", "results.json", "eda.json"]) {
   const p = join(dist, "data", f);
   if (!existsSync(p)) { errors.push(`missing data/${f}`); continue; }

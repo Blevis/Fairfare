@@ -9,7 +9,7 @@
 ![Jupyter](https://img.shields.io/badge/Notebooks-4_stages-F37626?style=for-the-badge&logo=jupyter&logoColor=white&labelColor=0b1020)
 ![Test set](https://img.shields.io/badge/July_test-scored_once-ff5a4d?style=for-the-badge&labelColor=0b1020)
 
-**[The problem](#-the-problem)** · **[Pipeline](#-pipeline)** · **[Quick start](#-run-everything-from-a-fresh-clone)** · **[Layout](#-repository-layout)** · **[Results](#-results)** · **[Website](#-website)** · **[AI use](#-ai-use-declaration)** · **[Team](#-team)**
+**[The problem](#-the-problem)** · **[Pipeline](#-pipeline)** · **[Quick start](#-run-everything-from-a-fresh-clone)** · **[Layout](#-repository-layout)** · **[Results](#-results)** · **[Website](#-website)** · **[Report](#-report)** · **[AI use](#-ai-use-declaration)** · **[Team](#-team)**
 
 </div>
 
@@ -104,6 +104,7 @@ fairfare/
 ├── PROBLEM.md            problem card
 ├── MODEL_CARD.md         model card
 ├── PROJECT_ROADMAP.md    audit, milestones and their status
+├── documentation/        LaTeX report (fairfare_report.pdf), its figures and generator script
 ├── notebooks/            the four stage notebooks (01 → 04)
 ├── results/              small committed outputs: June grids, Gate-2/3 freezes, July results
 ├── tests/                protocol tests (python -m tests)
@@ -179,21 +180,36 @@ For a custom domain or a user site (`<owner>.github.io` repository), build with 
 
 ---
 
+## 📄 Report
+
+The full scientific write-up is [`documentation/fairfare_report.pdf`](documentation/fairfare_report.pdf) (LaTeX source alongside). Every number, table and figure in it is generated from `results/` and the May/June data by [`documentation/make_report_assets.py`](documentation/make_report_assets.py):
+
+```bash
+python documentation/make_report_assets.py           # figures/ + generated/{numbers,tables}.tex
+cd documentation && tectonic fairfare_report.tex     # or: pdflatex fairfare_report.tex (twice)
+```
+
+---
+
 ## 🤖 AI use declaration
 
-AI was used in this project; the specifics are to be elaborated.
+Generative AI (Anthropic's Claude, used through the Claude Code assistant) was used in this project:
 
-- ...
+- **Website (`site/`):** generated with AI from our specifications, including the in-browser port of the model and its parity test.
+- **Code:** AI worked from the pipeline the team had already written (data loading, cleaning, the first feature sets, baselines and evaluation helpers) and helped extend it: additional feature sets and model options, the quote-rule and distance-perturbation helpers, the protocol tests, the straight-line distance estimator and the website's data-export script.
+- **Text:** help editing the notebook narratives and the Markdown documentation.
+
+Every methodological decision (population scope, temporal protocol, selection rules, the reset of the July lock) was made or explicitly approved by the team. Blevis Allushi reviewed all AI-produced code, ran every analysis and checked the reported numbers against the executed outputs. All results come from code executed in this repository; none were produced or edited by hand.
 
 ---
 
 ## 👥 Team
 
-| Member | Main responsibility |
-|---|---|
-| **Blevis Allushi** | |
-| **Geri Belba** | |
-| **Leandra Latifi** | |
+| Member | Lead area | Contribution |
+|---|---|---|
+| **Blevis Allushi** | Project lead, protocol and pipeline | Repository, `src/` package and five-stage pipeline; evaluation protocol (temporal split, pre-stated selection rules, single-use July lock); data acquisition, cleaning and population definition; hyperparameter tuning and the single July run; booking-time distance (routing) study; direction of the website; LaTeX report. |
+| **Geri Belba** | Features and leakage | May exploratory analysis (fare per mile by hour, weekday, borough and zone; airport trips) that motivated the time and zone features; the cumulative feature ladder and its June ablation, including the target-encoded zone pair and distance × time-of-week interactions; leakage audit of every feature; review of the distance-noise sensitivity analysis. |
+| **Leandra Latifi** | Evaluation and the quote | Baseline ladder (median, fitted rate rule, shallow tree) and slice analysis; comparison of quote rules (additive, multiplicative, per distance band) with odd/even-day cross-fitting on June; July coverage and failure-mode analysis (slow traffic, 20+ mi trips, airports); model card. |
 
 <div align="center">
 
