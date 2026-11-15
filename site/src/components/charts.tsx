@@ -126,12 +126,13 @@ export function LineChart({ series, title, xLabel, yLabel, fmtY, xTicks, xFmt = 
 }
 
 /* ---------------- histogram ---------------- */
-export function Histogram({ edges, counts, title, xLabel, refX, fmtX = String, height = 260 }: {
+export function Histogram({ edges, counts, title, xLabel, refX, fmtX = String, height = 260, markers = [] }: {
   edges: number[]; counts: number[]; title: string; xLabel: string; refX?: number; fmtX?: (v: number) => string; height?: number;
+  markers?: { x: number; label: string }[];
 }) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const { tip, show, hide } = useTip();
-  const m = { l: 56, r: 12, t: 10, b: 44 };
+  const m = { l: 56, r: 12, t: markers.length ? 12 + 15 * markers.length : 10, b: 44 };   // labels get their own band above the bars
   const total = counts.reduce((a, b) => a + b, 0);
   const x = lin(edges[0], edges[edges.length - 1], m.l, w - m.r);
   const max = Math.max(...counts);
@@ -147,6 +148,12 @@ export function Histogram({ edges, counts, title, xLabel, refX, fmtX = String, h
             onMouseLeave={hide} />
         ))}
         {refX !== undefined && <line x1={x(refX)} x2={x(refX)} y1={m.t} y2={height - m.b} stroke="var(--ink)" strokeDasharray="4 3" />}
+        {markers.map((mk, i) => (
+          <g key={mk.label}>
+            <line x1={x(mk.x)} x2={x(mk.x)} y1={12 + 15 * i - 4} y2={height - m.b} stroke={mk.label.startsWith("mean") ? "var(--warn)" : "var(--ink)"} strokeDasharray="4 3" />
+            <text x={x(mk.x) + 4} y={12 + 15 * i} className="label" style={{ fill: mk.label.startsWith("mean") ? "var(--warn)" : "var(--ink)" }}>{mk.label}</text>
+          </g>
+        ))}
         <g className="axis">
           {ticks(0, max, 4).map((t) => <text key={t} x={m.l - 8} y={y(t) + 4} textAnchor="end">{t.toLocaleString("en-US")}</text>)}
           {ticks(edges[0], edges[edges.length - 1], 8).map((t) => <text key={t} x={x(t)} y={height - m.b + 16} textAnchor="middle">{fmtX(t)}</text>)}
@@ -225,6 +232,74 @@ export function CoverageDots({ rows, target, title }: { rows: { label: string; n
         })}
         <g className="axis">{ticks(lo, 1, 5).map((t) => <text key={t} x={x(t)} y={h - bottom + 14} textAnchor="middle">{Math.round(t * 100)}%</text>)}</g>
       </svg>
+      {tip}
+    </figure>
+  );
+}
+
+/* ---------------- box plot (p10–p90 whiskers, Q1–Q3 box, median line, mean dot) ---------------- */
+export interface BoxRow { label: string; n: number; p10: number; q1: number; median: number; q3: number; p90: number; mean: number }
+export function BoxPlot({ rows, title, fmt, xLabel }: { rows: BoxRow[]; title: string; fmt: (v: number) => string; xLabel: string }) {
+  const [ref, w] = useWidth<HTMLDivElement>();
+  const { tip, show, hide } = useTip();
+  const narrow = w < 560;
+  const labelW = narrow ? 8 : Math.min(190, w * 0.32), rowH = narrow ? 52 : 38, top = 6, bottom = 38, right = 16;
+  const by = narrow ? 20 : 8, bh = narrow ? 22 : rowH - 16;
+  const h = top + rows.length * rowH + bottom;
+  const max = Math.max(...rows.map((r) => r.p90)) * 1.04;
+  const x = lin(0, max, labelW, w - right);
+  return (
+    <figure className="chart-wrap" ref={ref} style={{ margin: 0 }}>
+      <svg className="chart" width={w} height={h} role="img" aria-label={title}>
+        <g className="grid">{ticks(0, max).map((t) => <line key={t} x1={x(t)} x2={x(t)} y1={top} y2={h - bottom} />)}</g>
+        {rows.map((r, i) => {
+          const y = top + i * rowH, mid = y + by + bh / 2;
+          const html = <>{r.label} · n = {r.n.toLocaleString("en-US")}<br />10th {fmt(r.p10)} · Q1 {fmt(r.q1)} · <b>median {fmt(r.median)}</b><br />Q3 {fmt(r.q3)} · 90th {fmt(r.p90)} · mean {fmt(r.mean)}</>;
+          return (
+            <g key={r.label} tabIndex={0} onMouseMove={() => show(x(r.median), y + by, html)} onFocus={() => show(x(r.median), y + by, html)} onMouseLeave={hide} onBlur={hide}>
+              <text x={narrow ? labelW : labelW - 10} y={narrow ? y + 13 : mid + 4} textAnchor={narrow ? "start" : "end"} className="label">{r.label} <tspan style={{ fill: "var(--ink-3)" }}>n={r.n.toLocaleString("en-US")}</tspan></text>
+              <line x1={x(r.p10)} x2={x(r.p90)} y1={mid} y2={mid} stroke="var(--ink-3)" />
+              <line x1={x(r.p10)} x2={x(r.p10)} y1={mid - 5} y2={mid + 5} stroke="var(--ink-3)" />
+              <line x1={x(r.p90)} x2={x(r.p90)} y1={mid - 5} y2={mid + 5} stroke="var(--ink-3)" />
+              <rect x={x(r.q1)} y={y + by} width={Math.max(1, x(r.q3) - x(r.q1))} height={bh} rx={3} fill="var(--seq-1)" stroke="var(--model)" />
+              <line x1={x(r.median)} x2={x(r.median)} y1={y + by} y2={y + by + bh} stroke="var(--ink)" strokeWidth={2.4} />
+              <circle cx={x(r.mean)} cy={mid} r={3.6} fill="var(--warn)" />
+            </g>
+          );
+        })}
+        <g className="axis">{ticks(0, max).map((t) => <text key={t} x={x(t)} y={h - bottom + 16} textAnchor="middle">{fmt(t).replace(/\.00$/, "")}</text>)}</g>
+        <text x={(labelW + w - right) / 2} y={h - 4} textAnchor="middle">{xLabel}</text>
+      </svg>
+      <Legend items={[{ label: "middle half of trips (Q1–Q3)", color: "var(--seq-1)" }, { label: "median (line)", color: "var(--ink)" }, { label: "mean (dot)", color: "var(--warn)" }, { label: "whiskers: 10th–90th percentile", color: "var(--ink-3)" }]} />
+      {tip}
+    </figure>
+  );
+}
+
+/* ---------------- day x hour grid ---------------- */
+export function GridHeat({ values, counts, rowLabels, title, fmt }: { values: number[][]; counts: number[][]; rowLabels: string[]; title: string; fmt: (v: number) => string }) {
+  const [ref, w] = useWidth<HTMLDivElement>();
+  const { tip, show, hide } = useTip();
+  const left = 40, top = 4, bottom = 26, cols = values[0].length;
+  const cw = (w - left - 4) / cols, ch = Math.max(18, Math.min(30, cw * 0.9));
+  const h = top + values.length * ch + bottom;
+  const flat = values.flat(), lo = Math.min(...flat), hi = Math.max(...flat);
+  const color = (v: number) => SEQ[Math.min(4, Math.floor(((v - lo) / (hi - lo || 1)) * 4.999))];
+  return (
+    <figure className="chart-wrap" ref={ref} style={{ margin: 0 }}>
+      <svg className="chart" width={w} height={h} role="img" aria-label={title}>
+        {values.map((row, i) => (
+          <g key={i}>
+            <text x={left - 6} y={top + i * ch + ch / 2 + 4} textAnchor="end">{rowLabels[i]}</text>
+            {row.map((v, j) => (
+              <rect key={j} x={left + j * cw} y={top + i * ch} width={cw - 1} height={ch - 1} rx={2} fill={color(v)}
+                onMouseMove={() => show(left + j * cw + cw / 2, top + i * ch, <>{rowLabels[i]} {String(j).padStart(2, "0")}:00<br />median {fmt(v)} · n = {counts[i][j].toLocaleString("en-US")}</>)} onMouseLeave={hide} />
+            ))}
+          </g>
+        ))}
+        {Array.from({ length: cols }, (_, j) => j).filter((j) => j % 3 === 0).map((j) => <text key={j} x={left + j * cw + cw / 2} y={h - 8} textAnchor="middle">{j}</text>)}
+      </svg>
+      <Legend items={[{ label: `cheaper (${fmt(lo)})`, color: SEQ[0] }, { label: "", color: SEQ[2] }, { label: `dearer (${fmt(hi)})`, color: SEQ[4] }]} />
       {tip}
     </figure>
   );

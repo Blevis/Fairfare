@@ -28,7 +28,7 @@ export function About() {
       <Section eyebrow="Limitations" title="What to keep in mind">
         <div className="prose">
           <ul>
-            <li><b>Planned vs measured distance.</b> The model was trained and evaluated on the odometer distance recorded after the trip. A booking app has only a routing estimate, so real-world error will be higher. On June data, a ±10% distance error raised the MAE by about 22 cents.</li>
+            <li><b>Planned vs measured distance.</b> The model was trained and evaluated on the odometer distance recorded after the trip. A booking app has only a routing estimate. The website's straight-line estimate raises the June error from $2.08 to $3.26 per trip; a real routing engine would sit in between (±10% distance error costs about 22 cents).</li>
             <li><b>Population defined after the fact.</b> Which trips count as "standard metered" is decided from fields recorded at the end of the trip (rate code, payment type). A deployed quote assumes the app already knows the trip will be metered.</li>
             <li><b>Time in traffic is unobservable.</b> The meter bills slow minutes, and the booking inputs can only anticipate them on average. Very slow trips are under-predicted.</li>
             <li><b>Three months, one city, one sample.</b> Seasonality, events and fare-rule changes beyond July 2026 are untested. Zones with few trips have noisy statistics.</li>

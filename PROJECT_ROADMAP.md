@@ -157,3 +157,8 @@ Ordered by scientific risk. Each milestone lists: **Objective · Implementation 
 
 ### Phase 2 (website), status
 `site/`: static Vite + React + TypeScript site with exact in-browser inference (parity test: max difference 0 over 2 000 June trips), seven pages, a GitHub Pages workflow that runs only on manual dispatch. **Not deployed**: publishing is the repository owner's decision (README → Website).
+
+### Phase 3 additions (2026-11-15)
+- **Booking-time distance:** `src/routing.py` + NB05 Part A. Straight line between zone centroids × a detour factor by length band (fitted on May). June: distance MAE 0.53 mi; model MAE \$3.26 (vs \$2.08 with odometer distances); separate quote buffers restore 90% cross-fitted coverage. Not evaluated on July (locked). Used by the website predictor by default.
+- **Descriptive statistics:** `src/eda.py` + NB05 Part B → website **Data** page (quartiles, means, medians, most/least expensive zones, routes and trips with explanations, weekday × hour fare per mile, raw \$100+ fares by regime, month comparison).
+- **Website fix:** hero image distortion (CSS kept a fixed height while scaling the width); all images now `height: auto`, verified rendered ratio 1.652 = natural ratio.

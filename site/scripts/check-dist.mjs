@@ -26,7 +26,7 @@ const js = readdirSync(join(dist, "assets")).filter((f) => f.endsWith(".js")).ma
 const routes = new Set([...js.matchAll(/path:["`](\/[a-z]*)["`]/g)].map((m) => m[1]));
 const links = new Set([...js.matchAll(/[A-Za-z_$][\w$]*\(["`](\/[a-z]*)["`]\)/g)].map((m) => m[1]));
 for (const l of links) if (!routes.has(l)) errors.push(`link to unknown route #${l}`);
-if (routes.size < 7) errors.push(`expected 7 routes, found ${[...routes].join(", ")}`);
+if (routes.size < 8) errors.push(`expected 8 routes, found ${[...routes].join(", ")}`);
 
 if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
 console.log(`dist OK: base ${base}, ${routes.size} routes, ${links.size} distinct route links, data files present`);

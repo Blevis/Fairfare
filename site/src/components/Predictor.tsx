@@ -1,17 +1,17 @@
 import { useMemo, useState } from "react";
 import { useModel, useResults, useZones, type Zones } from "../lib/data";
-import { predict, type ModelJSON } from "../lib/model";
+import { estimateDistance, predict, type ModelJSON } from "../lib/model";
 import { pct, usd } from "../lib/format";
 import { ZoneMap } from "./ZoneMap";
 
 const EXCLUDED = new Set([264, 265]); // unknown zones: outside the population
 const MAX_DIST = 24.85; // May 99.9% distance cap (src/clean.py)
 
-// Example trips; each distance is the median June trip distance for that zone pair (cleaned data).
+// Example trips (the distance comes from the straight-line estimate, like any other trip).
 const PRESETS = [
-  { label: "Times Sq → Financial District", pu: 230, do: 87, dist: 5.9, when: "2026-07-15T08:30" },
-  { label: "Upper East Side → Midtown, Friday evening", pu: 237, do: 161, dist: 1.0, when: "2026-07-17T18:00" },
-  { label: "Midtown East → LaGuardia, Sunday", pu: 162, do: 138, dist: 10.2, when: "2026-07-19T11:00" },
+  { label: "Times Sq → Financial District", pu: 230, do: 87, when: "2026-07-15T08:30" },
+  { label: "Upper East Side → Midtown, Friday evening", pu: 237, do: 161, when: "2026-07-17T18:00" },
+  { label: "Midtown East → LaGuardia, Sunday", pu: 162, do: 138, when: "2026-07-19T11:00" },
 ];
 
 function scopeWarnings(z: Map<number, { borough: string; zone: string }>, pu: number, dz: number, dist: number): string[] {
@@ -36,7 +36,7 @@ function PredictorForm({ model, zones, compact }: { model: ModelJSON; zones: Zon
   const { data: res } = useResults();
   const [pu, setPu] = useState(230);
   const [dz, setDz] = useState(87);
-  const [dist, setDist] = useState(5.9);
+  const [manualDist, setManualDist] = useState<number | null>(null);   // null = use the straight-line estimate
   const [when, setWhen] = useState("2026-07-15T08:30");
   const [picking, setPicking] = useState<"pu" | "do">("pu");
 
@@ -53,8 +53,13 @@ function PredictorForm({ model, zones, compact }: { model: ModelJSON; zones: Zon
     return [...g.entries()].sort((a, b) => (a[0] === "Manhattan" ? -1 : b[0] === "Manhattan" ? 1 : a[0].localeCompare(b[0])));
   }, [zones]);
 
+  const est = estimateDistance(model.routing, pu, dz);
+  const estimated = manualDist === null;
+  const dist = manualDist ?? est.miles;
   const valid = dist > 0 && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(when);
-  const p = valid ? predict(model, { pickup: when, pu, do: dz, dist, pickupBorough: zmap.get(pu)?.borough ?? "Unknown", dropoffBorough: zmap.get(dz)?.borough ?? "Unknown" }) : null;
+  const p = valid ? predict(model, { pickup: when, pu, do: dz, dist, pickupBorough: zmap.get(pu)?.borough ?? "Unknown", dropoffBorough: zmap.get(dz)?.borough ?? "Unknown" }, estimated ? "estimated" : "entered") : null;
+  const cost = res?.routing.june_model_cost;
+  const juneMae = (k: string) => cost?.find((c) => c.setting === k)?.mae;
   const warnings = scopeWarnings(zmap, pu, dz, dist);
   const bandRow = p && res?.july.july_slices.dist_band?.find((r) => String(r.dist_band) === p.distBand);
 
@@ -82,19 +87,25 @@ function PredictorForm({ model, zones, compact }: { model: ModelJSON; zones: Zon
             <input id="when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
           </div>
           <div className="field">
-            <label htmlFor="dist">Planned distance (miles)</label>
-            <input id="dist" type="number" min={0.1} max={40} step={0.1} value={dist} onChange={(e) => setDist(Number(e.target.value))} />
+            <label htmlFor="dist">Planned distance (miles) <span className="pill">{estimated ? "estimated" : "entered"}</span></label>
+            <input id="dist" type="number" min={0.1} max={40} step={0.1} value={estimated ? Number(dist.toFixed(2)) : dist} onChange={(e) => setManualDist(Number(e.target.value))} />
           </div>
           <div className="field span2">
-            <input type="range" min={0.1} max={25} step={0.1} value={Math.min(dist, 25)} onChange={(e) => setDist(Number(e.target.value))} aria-label="Planned distance slider" />
-            <span className="hint">The app would take this from its routing engine; here you type it in.</span>
+            <input type="range" min={0.1} max={25} step={0.1} value={Math.min(dist, 25)} onChange={(e) => setManualDist(Number(e.target.value))} aria-label="Planned distance slider" />
+            {estimated ? (
+              <span className="hint">{est.straight !== undefined
+                ? <>Estimated: {est.straight.toFixed(2)} mi straight line between the zone centres × detour factor {est.k!.toFixed(2)} (learned from May trips of that length). If you have a route distance from a maps app, type it in instead.</>
+                : <>Same-zone trip: the median distance of May trips that start and end in this zone.</>}</span>
+            ) : (
+              <span className="hint">Using your distance. <button type="button" className="btn ghost" style={{ padding: ".15rem .5rem", fontSize: ".78rem" }} onClick={() => setManualDist(null)}>Use the straight-line estimate ({est.miles.toFixed(1)} mi)</button></span>
+            )}
           </div>
         </div>
         <div className="toolbar" style={{ marginTop: ".9rem", marginBottom: 0 }}>
           <span className="small muted">Examples:</span>
           {PRESETS.map((x) => (
             <button key={x.label} type="button" className="btn ghost" style={{ padding: ".3rem .6rem", fontSize: ".8rem" }}
-              onClick={() => { setPu(x.pu); setDz(x.do); setDist(x.dist); setWhen(x.when); }}>{x.label}</button>
+              onClick={() => { setPu(x.pu); setDz(x.do); setManualDist(null); setWhen(x.when); }}>{x.label}</button>
           ))}
         </div>
       </form>
@@ -116,7 +127,11 @@ function PredictorForm({ model, zones, compact }: { model: ModelJSON; zones: Zon
               </div>
             </div>
             <ul className="small" style={{ paddingLeft: "1.1rem", marginTop: "1rem" }}>
-              <li>The quote is set so that, on June data, the real meter fare stayed at or under it for {pct(model.buffer_q, 0)} of trips{bandRow ? <> (on July, {pct(Number(bandRow.coverage))} of {Number(bandRow.n).toLocaleString("en-US")} trips in this distance band; typical miss {usd(Number(bandRow.mae))})</> : null}.</li>
+              {estimated ? (
+                <li>The distance is an estimate, so the quote uses wider buffers, calibrated on June for estimated distances. In cross-fitted June checks the real fare stayed at or under the quote on {res ? pct(res.routing.june_crossfit_quote_estimated.coverage) : "90%"} of trips. Without the real route the model is less accurate (June average error {juneMae("frozen model, estimated distance") !== undefined ? usd(juneMae("frozen model, estimated distance")!) : "…"} vs {juneMae("frozen model, odometer distance") !== undefined ? usd(juneMae("frozen model, odometer distance")!) : "…"} with the real distance). Not tested on July.</li>
+              ) : (
+                <li>The quote is set so that, on June data, the real meter fare stayed at or under it for {pct(model.buffer_q, 0)} of trips{bandRow ? <> (on July, {pct(Number(bandRow.coverage))} of {Number(bandRow.n).toLocaleString("en-US")} trips in this distance band; typical miss {usd(Number(bandRow.mae))})</> : null}. This assumes your distance is as accurate as a taxi's odometer.</li>
+              )}
               <li>The official meter's distance part alone would be {usd(p.tlcDistanceOnly)} ($3.00 + $3.50/mi). The difference is mostly the expected time charge for slow traffic at this place and hour.</li>
               <li>Not included: surcharges (MTA, congestion, rush hour, overnight, airport), tolls and tip. These are billed outside <code>fare_amount</code>.</li>
             </ul>
@@ -144,7 +159,7 @@ function PredictorForm({ model, zones, compact }: { model: ModelJSON; zones: Zon
             legend={[{ label: "pickup", color: "var(--model)" }, { label: "drop-off", color: "var(--div-neg)" }]}
             tooltip={(id) => <>{zmap.get(id)?.zone}<br /><span style={{ opacity: .75 }}>{zmap.get(id)?.borough} · zone {id}</span></>}
             onPick={(id) => { if (EXCLUDED.has(id)) return; if (picking === "pu") { setPu(id); setPicking("do"); } else setDz(id); }} />
-          <p className="small muted" style={{ marginTop: ".5rem" }}>The map doesn't compute a route. Enter the planned distance above.</p>
+          <p className="small muted" style={{ marginTop: ".5rem" }}>The distance is estimated from the straight line between the two zone centres. Type a route distance above to override it.</p>
         </div>
       )}
     </div>

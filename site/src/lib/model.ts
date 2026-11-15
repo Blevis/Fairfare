@@ -30,6 +30,35 @@ export interface ModelJSON {
   buffer_q: number;
   tlc: { start: number; per_mile: number };
   trained_on: string;
+  routing: Routing;
+}
+
+/** Booking-time distance estimate (src/routing.py): straight line between zone centroids x a detour
+ *  factor that depends on the straight-line length; same-zone trips use that zone's May median. */
+export interface Routing {
+  centroids: Record<string, [number, number]>;
+  ft_per_mile: number;
+  band_edges: number[];
+  k_band: number[];
+  same_zone: Record<string, number>;
+  same_zone_default: number;
+  quote_rule_estimated: QuoteRule;
+}
+
+export function straightMiles(r: Routing, pu: number, dz: number): number | undefined {
+  const a = r.centroids[String(pu)], b = r.centroids[String(dz)];
+  if (!a || !b) return undefined;
+  return Math.hypot(a[0] - b[0], a[1] - b[1]) / r.ft_per_mile;
+}
+
+export function estimateDistance(r: Routing, pu: number, dz: number): { miles: number; straight?: number; k?: number } {
+  if (pu === dz) return { miles: r.same_zone[String(pu)] ?? r.same_zone_default };
+  const s = straightMiles(r, pu, dz);
+  if (s === undefined || !Number.isFinite(s)) return { miles: r.same_zone_default };
+  let band = 0;
+  while (band + 1 < r.band_edges.length && s >= r.band_edges[band + 1]) band++;   // searchsorted(side="right") - 1
+  const k = r.k_band[band];
+  return { miles: k * s, straight: s, k };
 }
 
 export interface TripInput {
@@ -127,13 +156,14 @@ export interface Prediction {
   unseen: { pickupZone: boolean; dropoffZone: boolean; pair: boolean };
 }
 
-export function predict(m: ModelJSON, trip: TripInput): Prediction {
+export function predict(m: ModelJSON, trip: TripInput, distanceSource: "estimated" | "entered" = "entered"): Prediction {
   const row = featureRow(m, trip);
   const x = vectorize(m, row);
   let raw = m.baseline;
   for (const t of m.trees) raw += treeValue(t, x);
   const band = String(row.dist_band);
-  const rule = m.quote_rule;
+  // estimated distances are less exact, so they get their own (wider) June-calibrated buffers
+  const rule = distanceSource === "estimated" ? m.routing.quote_rule_estimated : m.quote_rule;
   const buffer = typeof rule.b === "number" ? rule.b : rule.b[band] ?? rule.default ?? 0;
   const te = m.blocks.find((b) => b.kind === "target") as Extract<Block, { kind: "target" }> | undefined;
   const has = (col: string) => {

@@ -54,7 +54,7 @@ export function Methodology() {
             <ul className="small"><li>drop-off time, duration, speed</li><li>tip, total, tolls, every surcharge column</li><li><code>RatecodeID</code>, <code>payment_type</code> (set at the end of the trip)</li><li><code>passenger_count</code>, <code>VendorID</code>, <code>request_source</code> (excluded by decision)</li></ul>
           </div>
         </div>
-        <p className="note" style={{ marginTop: "1rem" }}><b>Key assumption:</b> <code>trip_distance</code> in the data is the odometer reading after the trip. We treat it as a stand-in for the routing estimate an app would have, so results are optimistic by the routing error. The Results page shows how quickly accuracy falls when distance is noisy.</p>
+        <p className="note" style={{ marginTop: "1rem" }}><b>Key assumption:</b> <code>trip_distance</code> in the data is the odometer reading after the trip. We treat it as a stand-in for the routing estimate an app would have, so the July results are optimistic by the routing error. The predictor estimates the distance as the straight line between zone centres × a detour factor learned on May. The Results page shows what that costs on June, and how quickly accuracy falls when distance is noisy.</p>
       </Section>
 
       <Section eyebrow="Leakage prevention" title="Two locks and a test">

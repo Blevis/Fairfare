@@ -41,7 +41,31 @@ export interface Results {
   ablation: { feature_set: string; model: string; n_features: number; mae: number; rmse: number; bias: number }[];
   tree_grid: { depth: number; leaf: number; mae: number; rmse: number; bias: number }[];
   hgb_grid: { loss: string; learning_rate: number; max_leaf_nodes: number; max_iter: number; min_samples_leaf: number; mae: number; rmse: number; bias: number }[];
+  routing: {
+    k: number; k_band: number[]; band_edges: number[]; n_band: number[]; n_fit: number; same_zone_default: number;
+    ratio_quantiles: Record<string, number>;
+    june_distance_error: { all: { n: number; mae_mi: number; median_abs_pct: number; bias_mi: number }; by_band: { band: string; n: number; mae_mi: number; median_abs_pct: number; bias_mi: number }[] };
+    june_model_cost: { setting: string; mae: number; rmse: number; bias: number; coverage_frozen_rule: number }[];
+    quote_rule_estimated: { b: Record<string, number>; default: number };
+    june_crossfit_quote_estimated: QuoteReport;
+    june_slices_estimated: Record<string, SliceRow[]>;
+  };
+  eda: Eda2;
   cleaning: { logs: Record<"train" | "val" | "test", LogRow[]>; n_raw: Record<string, number>; params: { dist_cap: number; fare_cap: number }; n_out_of_range: number; n_clean: Record<"train" | "val" | "test", number> };
+}
+export interface Stat5 { measure: string; count: number; mean: number; std: number; min: number; q1: number; median: number; q3: number; max: number }
+export interface QRow { n: number; mean: number; p10: number; q1: number; median: number; q3: number; p90: number; [k: string]: number | string }
+export interface RankRow { zone?: string; route?: string; n: number; median_fare: number; mean_fare: number; median_distance: number; median_duration: number; median_speed: number; median_fare_per_mile: number }
+export interface TripRow { pickup: string; route: string; trip_distance: number; duration_min: number; speed_mph: number; fare_amount: number; fare_per_mile: number }
+export interface Eda2 {
+  summary_may: Stat5[]; months: Stat5[];
+  quartiles: Record<string, { fare: QRow[]; fare_per_mile: QRow[] }>;
+  rankings: Record<string, { most: RankRow[]; least: RankRow[] }>;
+  top_trips: TripRow[]; cheapest_trips: TripRow[];
+  n_minimum_fare: number; slow_share: number; slow_median_fpm: number; median_fpm: number;
+  raw_over_100: { n: number; share: number; kept: number; by_kind: { kind: string; n: number; median_fare: number; median_distance: number }[] };
+  fpm_dow_hour: { median: number[][]; n: number[][] };
+  fare_hist: { edges: number[]; counts: number[] };
 }
 export interface Zone { id: number; borough: string; zone: string; service: string; path: string }
 export interface Zones { viewBox: [number, number, number, number]; zones: Zone[] }

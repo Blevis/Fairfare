@@ -54,6 +54,13 @@ Starting charge **\$6.67** vs TLC **\$3.00**; per-mile **\$3.99** vs TLC **\$3.5
 - July fares ran slightly **below** what the May-trained model expects: bias went from +\$0.42 (June) to −\$0.11 (July), and the fitted rate rule shows the same drift (−\$0.06 → −\$0.48). The June-calibrated buffer therefore over-covers in July (92.6% instead of 90%). Plausible causes, not tested here: lighter summer traffic, school holidays, events.
 - Population drift: flex (app-priced) trips grow from 23% to 27% of all trips, and one vendor's `RatecodeID = 99` recording artefact varies from 0.02% to 3.4% by month. Neither changes the definition of a metered trip.
 
+## Booking-time distance (added 2026-11-15, after the July run)
+The website estimates the planned distance as straight-line distance between zone centroids × a detour factor fitted on May per straight-line length band (1.79 under 0.5 mi, ≈1.17–1.28 for 1–5 mi, ≈1.35–1.46 beyond). Evaluated on **June only** (NB05):
+- distance error 0.53 mi on average (median 19%); long trips still under-estimated (+1.45 mi at 10–20 mi);
+- frozen model fed estimated distances: MAE **\$3.26**, RMSE \$4.84 (vs \$2.08 / \$3.23 with odometer distance). The original buffers would cover 82%;
+- separate per-band buffers for estimated distances (0–1 mi \$4.45 … 10–20 mi \$12.85) give 90.0% cross-fitted June coverage (average cushion \$5.27); airport trips stay below target (83%);
+- experiments, not adopted: retraining on estimated distances (\$2.94) or using the May median distance of the zone pair (\$3.04).
+
 ## Limitations and what we would do next
 - **Planned vs measured distance:** trained and evaluated on odometer distance. On June, ±5% / ±10% / ±20% distance error raises MAE to \$2.15 / \$2.30 / \$2.77 and lowers coverage to 89.9% / 89.3% / 87.0%. Next step: train on a routing engine's distance.
 - **Population is defined with post-trip fields** (rate code, payment type, duration): a deployed quote assumes the trip is known to be metered.

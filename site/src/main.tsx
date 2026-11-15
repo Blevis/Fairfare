@@ -5,13 +5,14 @@ import { ROUTES, href, useRoute } from "./lib/router";
 import { Home } from "./pages/Home";
 import { PredictPage } from "./pages/PredictPage";
 import { Methodology } from "./pages/Methodology";
+import { DataPage } from "./pages/DataPage";
 import { ModelPage } from "./pages/ModelPage";
 import { Results } from "./pages/Results";
 import { Analytics } from "./pages/Analytics";
 import { About } from "./pages/About";
 
 const PAGES: Record<string, () => React.JSX.Element> = {
-  "/": Home, "/predict": PredictPage, "/methodology": Methodology, "/model": ModelPage,
+  "/": Home, "/predict": PredictPage, "/methodology": Methodology, "/data": DataPage, "/model": ModelPage,
   "/results": Results, "/analytics": Analytics, "/about": About,
 };
 

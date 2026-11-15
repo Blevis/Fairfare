@@ -105,6 +105,22 @@ export function Results() {
         )}
       </Section>
 
+      <Section eyebrow="Booking-time distance" title="What a straight-line distance costs (June)"
+        lede={`The predictor estimates the route as the straight line between zone centres × a detour factor learned on May (${r.routing.k_band.map((k) => k.toFixed(2)).join(", ")} by straight-line length). Evaluated on June only, after the final July run; July was not used.`}>
+        <div className="grid g2">
+          <DataTable rows={r.routing.june_model_cost} highlight={(x) => x.setting === "frozen model, estimated distance"}
+            caption="June; all models trained on May. The website uses the highlighted setting. The retrained and zone-pair-history rows are experiments, not adopted."
+            cols={[{ key: "s", label: "Distance given to the model", render: (x) => x.setting.replace(" (experiment)", " *") },
+              { key: "m", label: "MAE", render: (x) => usd(x.mae) }, { key: "r", label: "RMSE", render: (x) => usd(x.rmse) },
+              { key: "c", label: "coverage, original buffers", render: (x) => pct(x.coverage_frozen_rule) }]} />
+          <div className="card small">
+            <h3>Distance error and the quote</h3>
+            <p>Estimated vs odometer distance on June: off by <b>{r.routing.june_distance_error.all.mae_mi.toFixed(2)} mi</b> on average (median error {pct(r.routing.june_distance_error.all.median_abs_pct, 0)}). Long trips are still under-estimated (bridges, highways).</p>
+            <p>With an estimated distance the original buffers would cover only about 82% of trips. So estimated distances get their own per-band buffers, fitted the same way on June: {Object.entries(r.routing.quote_rule_estimated.b).sort((a, b) => parseFloat(a[0]) - parseFloat(b[0])).map(([b, v]) => `${b} mi ${usd(v)}`).join(" · ")}. Cross-fitted June coverage: <b>{pct(r.routing.june_crossfit_quote_estimated.coverage)}</b>, average cushion {usd(r.routing.june_crossfit_quote_estimated.mean_cushion)}.</p>
+          </div>
+        </div>
+      </Section>
+
       <Section eyebrow="Robustness" title="If the planned distance is off" lede="On June, the trained model was given distances with random multiplicative noise (log-normal, mean one), to mimic a routing estimate that differs from the real route.">
         <DataTable rows={r.gate3.june_distance_noise} caption="June data; the model is unchanged and only its distance input is perturbed (seeded)."
           cols={[{ key: "s", label: "distance error (sd)", render: (x) => x.noise_sd === 0 ? "none" : `±${Math.round(x.noise_sd * 100)}%` },

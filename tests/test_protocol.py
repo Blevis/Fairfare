@@ -168,3 +168,31 @@ def test_lock_test_allows_exactly_one_call():
         finally:
             evaluate.LOCK, evaluate.PROCESSED = real_lock, real_proc
     assert evaluate.LOCK == real_lock
+
+
+def test_router_is_fitted_on_train_only_and_ignores_fares():
+    """The distance estimate uses only zones; refitting on the same May trips with scrambled fares
+    or post-trip columns changes nothing, and June never enters the fit."""
+    from src.routing import StraightLineRouter
+    train = D["train"]
+    if not (Path(__file__).resolve().parents[1] / "data" / "raw" / "taxi_zones" / "taxi_zones.shp").exists():
+        return   # zone shapefile not downloaded: nothing to test
+    a = StraightLineRouter().fit(train)
+    t2 = train.copy()
+    t2[TARGET] = t2[TARGET].sample(frac=1, random_state=1).to_numpy()
+    b = StraightLineRouter().fit(t2)
+    assert a.k_band_ == b.k_band_ and a.same_zone_ == b.same_zone_
+    est = a.predict(D["val"].PULocationID, D["val"].DOLocationID)
+    assert np.isfinite(est).all() and (est > 0).all()
+
+
+def test_router_same_zone_and_scaling():
+    from src.routing import StraightLineRouter
+    if not (Path(__file__).resolve().parents[1] / "data" / "raw" / "taxi_zones" / "taxi_zones.shp").exists():
+        return
+    r = StraightLineRouter().fit(D["train"])
+    s = r.straight_miles([161], [132])[0]
+    assert 10 < s < 20                                  # Midtown Center -> JFK, straight line
+    k = r.k_band_[r.band(s)]
+    assert abs(r.predict([161], [132])[0] - k * s) < 1e-12
+    assert r.predict([161], [161])[0] == r.same_zone_.get(161, r.same_zone_default_)

@@ -8,14 +8,13 @@ Writes site/public/data/*.json:
   parity.json   2 000 June trips + the Python predictions, used by `npm run test:parity` to prove the
                 TypeScript inference reproduces scikit-learn (June only; July is never scored here)
   zones.json    taxi zones (id, borough, name) + simplified outlines as SVG paths
-  results.json  every number the site shows, copied from results/*.json|csv (NB03 / NB04 outputs)
+  results.json  every number the site shows, copied from results/*.json|csv (NB03 / NB04 / NB05 outputs)
   eda.json      May (training) aggregates for the analytics page
 
 Nothing here re-scores July: July numbers come only from results/july_*.json written by NB04's
 single locked run.
 """
 import json
-import struct
 import sys
 from pathlib import Path
 
@@ -27,7 +26,9 @@ sys.path.insert(0, str(ROOT))
 
 from src.clean import build_datasets  # noqa: E402
 from src.config import (AIRPORT_ZONES, BUFFER_Q, BUFFER_RULE, FINAL_FEATURE_SET, FINAL_MODEL,  # noqa: E402
-                        FINAL_PARAMS, RAW, RESULTS, TARGET, ZONES_FILE)
+                        FINAL_PARAMS, RESULTS, TARGET, ZONES_FILE)
+from src.geo import read_dbf, read_shp, zone_centroids  # noqa: E402
+from src.routing import StraightLineRouter  # noqa: E402
 from src.features import DIST_BINS, DIST_LABELS, FEATURE_SETS, HOUR_BINS, add_features  # noqa: E402
 from src.models import TLC_PER_MILE, TLC_START, make_model, make_pipeline  # noqa: E402
 
@@ -79,51 +80,30 @@ def export_model(train, val):
         "tlc": {"start": TLC_START, "per_mile": TLC_PER_MILE},
         "trained_on": "May 2026 cleaned trips (n = %d)" % len(train),
     }
+    # booking-time distance estimate (src/routing.py, fitted on May; evaluated in NB05 on June)
+    router = StraightLineRouter().fit(train)
+    rj = load_json("routing.json")
+    assert abs(rj["k"] - router.k_) < 1e-12, "results/routing.json is stale: re-run NB05"
+    cen = zone_centroids()
+    model["routing"] = {
+        "centroids": {int(r.LocationID): [float(r.x_ft), float(r.y_ft)] for r in cen.itertuples()},
+        "ft_per_mile": 5280.0, "band_edges": list(router.BAND_EDGES), "k_band": router.k_band_,
+        "same_zone": {str(k): v for k, v in router.same_zone_.items()}, "same_zone_default": router.same_zone_default_,
+        "quote_rule_estimated": rj["quote_rule_estimated"],
+    }
     dump("model.json", model)
 
     # parity sample: June trips (never July)
     sample = val.sample(2000, random_state=0)
     p = pipe.predict(sample)
+    est = router.predict(sample.PULocationID, sample.DOLocationID)
     dump("parity.json", {"trips": [
         {"pickup": t.tpep_pickup_datetime.strftime("%Y-%m-%dT%H:%M:%S"), "pu": int(t.PULocationID), "do": int(t.DOLocationID),
-         "dist": float(t.trip_distance), "pred": float(pp)} for t, pp in zip(sample.itertuples(), p)]})
+         "dist": float(t.trip_distance), "pred": float(pp), "est_dist": float(e)} for t, pp, e in zip(sample.itertuples(), p, est)]})
     return pipe
 
 
-# ------------------------------------------------------------------ zones (minimal shapefile reader, no new deps)
-def read_dbf(path):
-    b = path.read_bytes()
-    n, hlen, rlen = struct.unpack("<IHH", b[4:12])
-    fields, off = [], 32
-    while b[off] != 0x0D:
-        name = b[off:off + 11].split(b"\0")[0].decode()
-        fields.append((name, b[off + 16]))
-        off += 32
-    rows = []
-    for i in range(n):
-        rec, pos, row = b[hlen + i * rlen: hlen + (i + 1) * rlen], 1, {}
-        for name, ln in fields:
-            row[name] = rec[pos:pos + ln].decode("latin-1").strip()
-            pos += ln
-        rows.append(row)
-    return rows
-
-
-def read_shp(path):
-    b, off, shapes = path.read_bytes(), 100, []
-    while off < len(b):
-        _, clen = struct.unpack(">ii", b[off:off + 8])
-        rec = b[off + 8: off + 8 + clen * 2]
-        off += 8 + clen * 2
-        if struct.unpack("<i", rec[:4])[0] == 0:
-            shapes.append([]); continue
-        nparts, npts = struct.unpack("<ii", rec[36:44])
-        parts = list(struct.unpack(f"<{nparts}i", rec[44:44 + 4 * nparts])) + [npts]
-        pts = np.frombuffer(rec[44 + 4 * nparts: 44 + 4 * nparts + 16 * npts], dtype="<f8").reshape(-1, 2)
-        shapes.append([pts[parts[k]:parts[k + 1]] for k in range(nparts)])
-    return shapes
-
-
+# ------------------------------------------------------------------ zones
 def simplify(ring, tol):
     """Douglas-Peucker on one ring (projected feet)."""
     if len(ring) < 4:
@@ -147,7 +127,7 @@ def simplify(ring, tol):
 
 def export_zones():
     lookup = pd.read_csv(ZONES_FILE)
-    shapes, rows = read_shp(RAW / "taxi_zones" / "taxi_zones.shp"), read_dbf(RAW / "taxi_zones" / "taxi_zones.dbf")
+    shapes, rows = read_shp(), read_dbf()
     allpts = np.vstack([r for s in shapes for r in s])
     x0, y1 = allpts[:, 0].min(), allpts[:, 1].max()
     scale = 1000 / (allpts[:, 0].max() - x0)          # 1000 px wide viewBox, NY State Plane feet
@@ -175,6 +155,8 @@ def export_results(D):
     logs = {k: v.to_dict(orient="records") for k, v in D["logs"].items()}
     dump("results.json", {
         "gate2": g2, "gate3": g3, "july": jf, "july_analytics": ja,
+        "routing": {k: v for k, v in load_json("routing.json").items() if k != "same_zone"},
+        "eda": load_json("eda_summary.json"),
         "ablation": pd.read_csv(RESULTS / "june_ablation.csv").to_dict(orient="records"),
         "tree_grid": pd.read_csv(RESULTS / "june_tree_grid.csv").to_dict(orient="records"),
         "hgb_grid": pd.read_csv(RESULTS / "june_hgb_grid.csv").to_dict(orient="records"),

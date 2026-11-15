@@ -16,7 +16,7 @@ Given the pickup time, pickup zone, drop-off zone and planned route length known
 
 Enforcement: `FORBIDDEN` + `assert_no_leak` (names) and `BOOKING_INPUTS` (the pipeline is handed only pickup time, the two zone IDs, their boroughs and distance). `tests/test_protocol.py` scrambles every forbidden column and checks the predictions are unchanged.
 
-- **`trip_distance` assumption:** in the data it is *measured during the trip*. We treat it as a stand-in for the routed distance a booking app would compute. A real route estimate has error, so our results are optimistic by that amount. **Quantified in NB04 §2b (June):** with ±5% / ±10% / ±20% (log-normal) distance error, June MAE goes from \$2.08 to \$2.15 / \$2.30 / \$2.77, and coverage of the 90% quote drops to 0.899 / 0.893 / 0.870.
+- **`trip_distance` assumption:** in the data it is *measured during the trip*. We treat it as a stand-in for the routed distance a booking app would compute. A real route estimate has error, so our results are optimistic by that amount. **Quantified in NB04 §2b (June):** with ±5% / ±10% / ±20% (log-normal) distance error, June MAE goes from \$2.08 to \$2.15 / \$2.30 / \$2.77, and coverage of the 90% quote drops to 0.899 / 0.893 / 0.870. A straight-line estimate (zone centroids × a May-fitted detour factor, NB05) raises June MAE to \$3.26 and needs its own, wider buffers.
 - **`passenger_count`:** excluded. It is missing for exactly the flex trips (23.3% of May), is driver-entered, and the Rate #01 meter does not price by passengers.
 - `RatecodeID` / `payment_type` are used **only to define the population**, never as features.
 

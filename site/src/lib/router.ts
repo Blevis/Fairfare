@@ -8,6 +8,7 @@ export const ROUTES = [
   { path: "/", label: "Home" },
   { path: "/predict", label: "Fare predictor" },
   { path: "/methodology", label: "Methodology" },
+  { path: "/data", label: "Data" },
   { path: "/model", label: "Model" },
   { path: "/results", label: "Results" },
   { path: "/analytics", label: "Analytics" },

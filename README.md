@@ -71,11 +71,11 @@ python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\a
 pip install -r requirements.txt                        # pinned versions the results were produced with
 python data/get_data.py                                # downloads data/raw/ and verifies SHA-256 checksums
 python -m tests                                        # protocol tests on synthetic data (no download needed)
-cd notebooks && jupyter nbconvert --to notebook --execute --inplace 01-frame.ipynb 02-clean-and-split.ipynb 03-features.ipynb 04-evaluate.ipynb
+cd notebooks && jupyter nbconvert --to notebook --execute --inplace 01-frame.ipynb 02-clean-and-split.ipynb 03-features.ipynb 04-evaluate.ipynb 05-routing-and-eda.ipynb
 ```
 
-**Order:** `01-frame` → `02-clean-and-split` → `03-features` → `04-evaluate`  
-**Runtime:** ≈ 20 min on a 16-core laptop (NB01–02: seconds; NB03 tuning grids: ≈ 18 min; NB04: ≈ 1 min)
+**Order:** `01-frame` → `02-clean-and-split` → `03-features` → `04-evaluate` → `05-routing-and-eda`  
+**Runtime:** ≈ 20 min on a 16-core laptop (NB01–02: seconds; NB03 tuning grids: ≈ 18 min; NB04: ≈ 1 min; NB05: ≈ 30 s)
 
 > [!IMPORTANT]
 > `04-evaluate` scores July **once** (`src.evaluate.lock_test`): with `RUN_JULY = True` a second run raises. July was scored on 2026-11-01 by the early skeleton (before anything was frozen) and then, after a disclosed lock reset, once on **2026-11-15** with the frozen configuration. That run produced `results/july_*.json`. Re-running NB04 in this repository therefore stops at §4. In a fresh clone (no lock file) it reproduces the same numbers.
@@ -91,6 +91,7 @@ cd notebooks && jupyter nbconvert --to notebook --execute --inplace 01-frame.ipy
 | 02 | `02-clean-and-split` | Filter implausible trips, build the May / June / July split |
 | 03 | `03-features` | Time, zone, and distance features |
 | 04 | `04-evaluate` | Baselines vs. models, bias, quote-rule choice, distance-noise sensitivity, single July scoring, slices, website aggregates |
+| 05 | `05-routing-and-eda` | Straight-line distance estimate (fit May, test June) and descriptive statistics: quartiles, means, medians, most/least expensive trips and places |
 
 </details>
 
@@ -111,6 +112,9 @@ fairfare/
 │   ├── data.py           load + temporal split
 │   ├── clean.py          cleaning rules
 │   ├── features.py       feature construction
+│   ├── geo.py            taxi-zone shapefile reader, zone centroids
+│   ├── routing.py        straight-line distance estimate (booking-time 'routing engine')
+│   ├── eda.py            descriptive statistics for NB05 / the Data page
 │   ├── config.py         paths, split, leakage blacklist, BOOKING_INPUTS, frozen model + quote rule
 │   ├── models.py         pipelines + baselines
 │   └── evaluate.py       metrics, bootstrap, quote rules, distance noise, lock_test
@@ -148,9 +152,9 @@ fairfare/
 
 ## 🌐 Website
 
-`site/` is a static website (Vite + React + TypeScript, no backend). It has a live **fare predictor**, plus methodology, model, results and analytics pages. All numbers are read from files exported from `results/`.
+`site/` is a static website (Vite + React + TypeScript, no backend). It has a live **fare predictor**, plus methodology, **data** (quartiles, means, medians, the most expensive and cheapest trips and places, and why), model, results and analytics pages. All numbers are read from files exported from `results/`.
 
-**Browser inference.** The predictor runs the real trained model in the browser. `site/scripts/export_data.py` refits the frozen pipeline on May (deterministic) and writes its one-hot categories, target-encoder tables and all 300 trees to `site/public/data/model.json`. `site/src/lib/model.ts` re-implements the feature code and tree traversal in TypeScript, and `npm run test:parity` checks it against scikit-learn on 2 000 June trips (maximum difference: 0). ONNX was not used: the feature step is a custom Python `FunctionTransformer`, which ONNX converters cannot translate, and the onnxruntime-web runtime would add several MB. Limits: the model file is ≈ 3 MB (≈ 1.1 MB gzipped), and the user types the planned distance (no routing engine).
+**Browser inference.** The predictor runs the real trained model in the browser. `site/scripts/export_data.py` refits the frozen pipeline on May (deterministic) and writes its one-hot categories, target-encoder tables and all 300 trees to `site/public/data/model.json`. `site/src/lib/model.ts` re-implements the feature code and tree traversal in TypeScript, and `npm run test:parity` checks it against scikit-learn on 2 000 June trips (maximum difference: 0). ONNX was not used: the feature step is a custom Python `FunctionTransformer`, which ONNX converters cannot translate, and the onnxruntime-web runtime would add several MB. **Distance at booking.** The predictor estimates the route as the straight line between the two zone centres × a detour factor learned on May for trips of that straight-line length (1.17–1.79; `src/routing.py`, also re-implemented in TypeScript and parity-tested). On June this costs accuracy: MAE \$3.26 vs \$2.08 with the odometer distance. Estimated distances therefore get their own June-calibrated quote buffers (90.0% cross-fitted June coverage, average cushion \$5.27). This mode was evaluated on June only; July was not re-used. A distance typed by the user switches back to the original buffers. Limits: the model file is ≈ 3 MB (≈ 1.1 MB gzipped).
 
 ```bash
 python site/scripts/export_data.py   # (only after re-running the pipeline) regenerate site/public/data from results/ + data/raw
