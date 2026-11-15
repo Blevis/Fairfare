@@ -14,12 +14,12 @@ Source, month split, rows kept after each cleaning step (link to PROBLEM.md tabl
 ## Performance (July, scored once)
 | | MAE | RMSE |
 |---|---|---|
-| Median baseline |	12.239 |12.329 |
+| Median baseline |	7.716 |12.239 |
 | Final model |	2.512 |3.390 |
-| Difference (95% day-block bootstrap CI) |7.716  |8.849 |
+| Difference (95% day-block bootstrap CI) |5.204  |8.849 |
 
 ## The quote buffer
-Buffer = $4.16 (chosen on June for 90% coverage). July coverage = ___%. Average over-quote = $4.23.
+Buffer = $4.16 (chosen on June for 90% coverage). July coverage = 92.4%. Average over-quote = $4.23.
 
 ## Where it fails (with n)
 | Slice | n | MAE | bias | coverage |
