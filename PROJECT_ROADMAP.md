@@ -138,14 +138,22 @@ Ordered by scientific risk. Each milestone lists: **Objective · Implementation 
 
 ---
 
-## Part C · Status
+## Part C · Status (2026-11-15)
 
-| Milestone | Status |
-|---|---|
-| M0 Reproducibility | ☐ |
-| M1 Cleaning documented | ☐ |
-| M2 Features | ☐ |
-| M3 Selection | ☐ |
-| M4 Calibration | ☐ |
-| M5 July | ☐ (blocked on lock decision) |
-| M6 Docs | ☐ |
+| Milestone | Status | Evidence |
+|---|---|---|
+| M0 Reproducibility | ✅ | pinned `requirements.txt`; SHA-256 checks in `get_data.py`; `python -m tests` → 13/13 pass; `BOOKING_INPUTS` enforced in `make_pipeline` |
+| M1 Cleaning documented | ✅ | NB02 findings table, flex evidence (`request_source`), `RatecodeID 99` drift explained; PROBLEM.md table filled from the May log |
+| M2 Features | ✅ | f5 zones, f6 zone pair (TargetEncoder inside the pipeline), f7 time × distance; ablation incl. losers (NB03 §1, §5) |
+| M3 Selection | ✅ | extended tree grid (plateau), 64-setting HGB grid, parsimony rule; HGB vs tuned tree −\$0.29 June MAE, CI excludes 0 (`results/gate2_freeze.json`) |
+| M4 Calibration | ✅ | per-distance-band buffer chosen by June odd/even cross-fitting; distance-noise sensitivity (`results/gate3_freeze.json`) |
+| M5 July | ✅ | lock reset with the owner's approval; scored once 2026-11-15T18:36:37 (`results/july_final.json`, `july_analytics.json`); earlier 2026-11-01 look disclosed |
+| M6 Docs | ✅ | PROBLEM.md, MODEL_CARD.md, README, NB01–04 narratives |
+
+### Deviations recorded during implementation
+- **A2.4 corrected:** `request_source` is empty for all May rows. The flex/app-dispatch evidence comes from June.
+- **HGB parameters:** a first NB03 run failed its own consistency check because `config.py` held a hand-picked setting (lr 0.05, 600 iterations). The config was changed to the setting the written parsimony rule selects (lr 0.1, 300 iterations) before NB04 ran. June MAE difference: \$0.005.
+- **20+ mi quote band** falls back to the global buffer (only 167 June trips); July coverage there is 72% (n = 201). Reported, not fixed after seeing July.
+
+### Phase 2 (website), status
+`site/`: static Vite + React + TypeScript site with exact in-browser inference (parity test: max difference 0 over 2 000 June trips), seven pages, a GitHub Pages workflow that runs only on manual dispatch. **Not deployed**: publishing is the repository owner's decision (README → Website).

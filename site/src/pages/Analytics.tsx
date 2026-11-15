@@ -79,7 +79,7 @@ export function Analytics() {
           <div className="card" style={{ gridColumn: "1 / -1" }}><h3>Quote coverage</h3>
             <LineChart title="July quote coverage by hour" series={hourSeries("coverage")} xLabel="pickup hour" yLabel="coverage" fmtY={(v) => `${Math.round(v * 100)}%`} refY={{ y: 0.9, label: "target 90%" }} xTicks={[0, 3, 6, 9, 12, 15, 18, 21, 23]} height={240} />
             <div className="legend"><span><i style={{ background: "var(--model)" }} />weekday</span><span><i style={{ background: "var(--div-neg)" }} />weekend</span></div>
-            <p className="small muted">One per-band buffer is too generous at night and too tight at midday, when slow traffic adds time charges the booking inputs can only partly anticipate.</p></div>
+            <p className="small muted">A buffer set per distance band, not per hour, is generous at night (about 95–99%) and runs close to the 90% target from late morning to early evening on weekdays, when slow traffic adds time charges the booking inputs can only partly anticipate.</p></div>
         </div>
       </Section>
 
@@ -93,7 +93,7 @@ export function Analytics() {
             <LineChart title="Mean and median actual fare per prediction decile" xLabel="mean predicted fare in decile" yLabel="actual fare" fmtY={(v) => `$${v.toFixed(0)}`} xFmt={(v) => `$${v.toFixed(0)}`}
               series={[{ name: "mean actual", color: "var(--model)", points: a.calibration_deciles.map((d) => ({ x: d.mean_pred, y: d.mean_actual, n: d.n })) },
                 { name: "median actual", color: "var(--div-neg)", dash: "5 4", points: a.calibration_deciles.map((d) => ({ x: d.mean_pred, y: d.median_actual, n: d.n })) }]} />
-            <p className="small muted">The model is trained with absolute-error loss, so it targets the <i>median</i> fare. The mean actual sits slightly above the prediction because fares have a long right tail (slow trips).</p></div>
+            <p className="small muted">Each point is a tenth of July trips (about 12,800). The curves stay close to the diagonal. In July the cheapest decile was under-predicted by about $0.20 and the most expensive over-predicted by about $0.40 on average. The model uses absolute-error loss, so it aims at the <i>median</i> fare (dashed).</p></div>
         </div>
       </Section>
 

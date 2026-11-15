@@ -7,10 +7,11 @@ import { ZoneMap } from "./ZoneMap";
 const EXCLUDED = new Set([264, 265]); // unknown zones: outside the population
 const MAX_DIST = 24.85; // May 99.9% distance cap (src/clean.py)
 
+// Example trips; each distance is the median June trip distance for that zone pair (cleaned data).
 const PRESETS = [
-  { label: "Times Sq → Financial District", pu: 230, do: 87, dist: 4.2, when: "2026-07-15T08:30" },
-  { label: "Upper East Side → Midtown, Friday evening", pu: 237, do: 161, dist: 1.6, when: "2026-07-17T18:00" },
-  { label: "Midtown East → LaGuardia, Sunday", pu: 162, do: 138, dist: 8.9, when: "2026-07-19T11:00" },
+  { label: "Times Sq → Financial District", pu: 230, do: 87, dist: 5.9, when: "2026-07-15T08:30" },
+  { label: "Upper East Side → Midtown, Friday evening", pu: 237, do: 161, dist: 1.0, when: "2026-07-17T18:00" },
+  { label: "Midtown East → LaGuardia, Sunday", pu: 162, do: 138, dist: 10.2, when: "2026-07-19T11:00" },
 ];
 
 function scopeWarnings(z: Map<number, { borough: string; zone: string }>, pu: number, dz: number, dist: number): string[] {
@@ -27,7 +28,7 @@ export function Predictor({ compact = false }: { compact?: boolean }) {
   const { data: model, error: me } = useModel();
   const { data: zones, error: ze } = useZones();
   if (me || ze) return <p className="warn-note">Could not load the model files: {me ?? ze}</p>;
-  if (!model || !zones) return <div className="card loading" aria-busy="true">Loading the model (≈1 MB, runs entirely in your browser)…</div>;
+  if (!model || !zones) return <div className="card loading" aria-busy="true">Loading the model (about 1 MB compressed; it runs entirely in your browser)…</div>;
   return <PredictorForm model={model} zones={zones} compact={compact} />;
 }
 
@@ -35,7 +36,7 @@ function PredictorForm({ model, zones, compact }: { model: ModelJSON; zones: Zon
   const { data: res } = useResults();
   const [pu, setPu] = useState(230);
   const [dz, setDz] = useState(87);
-  const [dist, setDist] = useState(4.2);
+  const [dist, setDist] = useState(5.9);
   const [when, setWhen] = useState("2026-07-15T08:30");
   const [picking, setPicking] = useState<"pu" | "do">("pu");
 

@@ -67,7 +67,7 @@ export function Results() {
               { key: "n", label: "July n", render: (b) => { const s = j.july_slices.dist_band.find((x) => String(x.dist_band) === b); return s ? int(s.n) : "–"; } }]} />
           <div className="card small">
             <h3>Coverage and its price</h3>
-            <table className="data">
+            <div className="table-scroll"><table className="data">
               <thead><tr><th scope="col"></th><th scope="col">June (chosen)</th><th scope="col">July (test)</th></tr></thead>
               <tbody>
                 <tr><td>Share of trips with fare ≤ quote</td><td>{pct(r.gate3.june_quote.coverage)}</td><td>{pct(j.july_quote.coverage)}</td></tr>
@@ -75,7 +75,7 @@ export function Results() {
                 <tr><td>Average amount quoted above the fare (0 when the fare exceeds the quote)</td><td>{usd(r.gate3.june_quote.mean_overquote)}</td><td>{usd(j.july_quote.mean_overquote)}</td></tr>
                 <tr><td>Average shortfall when the fare exceeds the quote</td><td>{usd(r.gate3.june_quote.mean_shortfall_when_under)}</td><td>{usd(j.july_quote.mean_shortfall_when_under)}</td></tr>
               </tbody>
-            </table>
+            </table></div>
             <p className="muted" style={{ marginTop: ".8rem" }}>Three quote rules were compared on June with odd/even-day cross-fitting: one global buffer, a multiplicative factor, and a buffer per distance band. The per-band buffer gave the most even coverage across slices (worst slice off target by {pct(r.gate3.june_rule_comparison.by_dist_band.worst_gap)} vs {pct(r.gate3.june_rule_comparison.additive.worst_gap)} for one global buffer) and the smallest average cushion.</p>
           </div>
         </div>

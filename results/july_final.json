@@ -1,0 +1,356 @@
+{
+  "scored_at": "2026-11-15T18:36:37",
+  "model": "hgb",
+  "feature_set": "f7_time_x",
+  "params": {
+    "loss": "absolute_error",
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 127,
+    "max_iter": 300,
+    "min_samples_leaf": 100
+  },
+  "quote_rule": {
+    "kind": "by_dist_band",
+    "q": 0.9,
+    "b": {
+      "0-1": 2.7921786659259094,
+      "1-2": 3.5839778239657503,
+      "10-20": 6.994198930199115,
+      "2-5": 4.622502528167941,
+      "20+": 3.925144948617674,
+      "5-10": 5.3586072062758
+    },
+    "default": 3.925144948617674
+  },
+  "july_metrics": {
+    "1 median (May)": {
+      "n": 128359.0,
+      "mae": 7.716,
+      "rmse": 12.239,
+      "bias": 3.137
+    },
+    "2a rate rule (TLC $3 + $3.50/mi)": {
+      "n": 128359.0,
+      "mae": 4.496,
+      "rmse": 5.949,
+      "bias": 4.484
+    },
+    "2b rate rule (fit on May)": {
+      "n": 128359.0,
+      "mae": 2.828,
+      "rmse": 3.796,
+      "bias": -0.479
+    },
+    "3 tree depth 2": {
+      "n": 128359.0,
+      "mae": 3.816,
+      "rmse": 5.173,
+      "bias": -0.48
+    },
+    "skeleton: linear f4_shape": {
+      "n": 128359.0,
+      "mae": 2.512,
+      "rmse": 3.39,
+      "bias": -0.56
+    },
+    "FINAL: hgb f7_time_x": {
+      "n": 128359.0,
+      "mae": 2.002,
+      "rmse": 2.959,
+      "bias": -0.105
+    }
+  },
+  "july_vs_median_bootstrap": {
+    "mae_model": {
+      "point": 2.00174044181066,
+      "lo": 1.9245460433450003,
+      "hi": 2.0864114369044766
+    },
+    "mae_baseline": {
+      "point": 7.7157449808739536,
+      "lo": 7.591457991862469,
+      "hi": 7.8366884329905515
+    },
+    "mae_diff": {
+      "point": -5.714004539063294,
+      "lo": -5.85096544121306,
+      "hi": -5.573657294760529
+    },
+    "rmse_model": {
+      "point": 2.958509457303643,
+      "lo": 2.822812078813931,
+      "hi": 3.1238424693716937
+    },
+    "rmse_baseline": {
+      "point": 12.238740318533019,
+      "lo": 12.023263703768633,
+      "hi": 12.442043339898433
+    },
+    "rmse_diff": {
+      "point": -9.280230861229375,
+      "lo": -9.508720241162914,
+      "hi": -9.048038297330027
+    }
+  },
+  "july_vs_rate_rule_bootstrap": {
+    "mae_model": {
+      "point": 2.00174044181066,
+      "lo": 1.9245460433450003,
+      "hi": 2.0864114369044766
+    },
+    "mae_baseline": {
+      "point": 2.827859943729195,
+      "lo": 2.7577494521564314,
+      "hi": 2.9057795141180978
+    },
+    "mae_diff": {
+      "point": -0.826119501918535,
+      "lo": -0.8764990997020616,
+      "hi": -0.7704524408617702
+    },
+    "rmse_model": {
+      "point": 2.958509457303643,
+      "lo": 2.822812078813931,
+      "hi": 3.1238424693716937
+    },
+    "rmse_baseline": {
+      "point": 3.7959562602926042,
+      "lo": 3.6472964631302163,
+      "hi": 3.9616184278731303
+    },
+    "rmse_diff": {
+      "point": -0.8374468029889615,
+      "lo": -0.8969915889440222,
+      "hi": -0.7691807828664602
+    }
+  },
+  "july_quote": {
+    "n": 128359,
+    "coverage": 0.9255447611776346,
+    "mean_overquote": 4.25041774605776,
+    "mean_cushion": 4.03175444025421,
+    "mean_shortfall_when_under": 2.936842447382854
+  },
+  "july_slices": {
+    "pickup_borough": [
+      {
+        "pickup_borough": "Bronx",
+        "n": 53,
+        "mae": 3.672,
+        "rmse": 5.428,
+        "bias": -1.125,
+        "coverage": 0.906
+      },
+      {
+        "pickup_borough": "Brooklyn",
+        "n": 524,
+        "mae": 2.262,
+        "rmse": 3.474,
+        "bias": 0.517,
+        "coverage": 0.914
+      },
+      {
+        "pickup_borough": "EWR",
+        "n": 1,
+        "mae": 9.762,
+        "rmse": 9.762,
+        "bias": -9.762,
+        "coverage": 1.0
+      },
+      {
+        "pickup_borough": "Manhattan",
+        "n": 118684,
+        "mae": 1.936,
+        "rmse": 2.842,
+        "bias": -0.072,
+        "coverage": 0.924
+      },
+      {
+        "pickup_borough": "Queens",
+        "n": 9096,
+        "mae": 2.835,
+        "rmse": 4.152,
+        "bias": -0.562,
+        "coverage": 0.948
+      },
+      {
+        "pickup_borough": "Staten Island",
+        "n": 1,
+        "mae": 2.773,
+        "rmse": 2.773,
+        "bias": -2.773,
+        "coverage": 1.0
+      }
+    ],
+    "airport_trip": [
+      {
+        "airport_trip": "0",
+        "n": 118829,
+        "mae": 1.937,
+        "rmse": 2.857,
+        "bias": -0.072,
+        "coverage": 0.924
+      },
+      {
+        "airport_trip": "1",
+        "n": 9530,
+        "mae": 2.81,
+        "rmse": 4.014,
+        "bias": -0.516,
+        "coverage": 0.948
+      }
+    ],
+    "hour_band": [
+      {
+        "hour_band": "night 0-5",
+        "n": 8599,
+        "mae": 1.228,
+        "rmse": 1.785,
+        "bias": 0.05,
+        "coverage": 0.978
+      },
+      {
+        "hour_band": "am 6-9",
+        "n": 14578,
+        "mae": 1.78,
+        "rmse": 2.735,
+        "bias": 0.036,
+        "coverage": 0.933
+      },
+      {
+        "hour_band": "midday 10-15",
+        "n": 43520,
+        "mae": 2.35,
+        "rmse": 3.339,
+        "bias": -0.348,
+        "coverage": 0.913
+      },
+      {
+        "hour_band": "pm 16-19",
+        "n": 35062,
+        "mae": 2.168,
+        "rmse": 3.17,
+        "bias": -0.083,
+        "coverage": 0.91
+      },
+      {
+        "hour_band": "eve 20-23",
+        "n": 26600,
+        "mae": 1.583,
+        "rmse": 2.371,
+        "bias": 0.137,
+        "coverage": 0.947
+      }
+    ],
+    "dist_band": [
+      {
+        "dist_band": "0-1",
+        "n": 34506,
+        "mae": 1.393,
+        "rmse": 2.22,
+        "bias": 0.186,
+        "coverage": 0.913
+      },
+      {
+        "dist_band": "1-2",
+        "n": 43944,
+        "mae": 1.836,
+        "rmse": 2.644,
+        "bias": -0.117,
+        "coverage": 0.927
+      },
+      {
+        "dist_band": "2-5",
+        "n": 33685,
+        "mae": 2.385,
+        "rmse": 3.282,
+        "bias": -0.303,
+        "coverage": 0.934
+      },
+      {
+        "dist_band": "5-10",
+        "n": 11228,
+        "mae": 2.743,
+        "rmse": 3.88,
+        "bias": -0.337,
+        "coverage": 0.937
+      },
+      {
+        "dist_band": "10-20",
+        "n": 4795,
+        "mae": 3.38,
+        "rmse": 4.742,
+        "bias": -0.2,
+        "coverage": 0.928
+      },
+      {
+        "dist_band": "20+",
+        "n": 201,
+        "mae": 4.332,
+        "rmse": 5.675,
+        "bias": 0.932,
+        "coverage": 0.721
+      }
+    ],
+    "rush_manhattan": [
+      {
+        "rush_manhattan": "0",
+        "n": 102172,
+        "mae": 1.975,
+        "rmse": 2.925,
+        "bias": -0.128,
+        "coverage": 0.931
+      },
+      {
+        "rush_manhattan": "1",
+        "n": 26187,
+        "mae": 2.106,
+        "rmse": 3.085,
+        "bias": -0.013,
+        "coverage": 0.904
+      }
+    ],
+    "speed_band": [
+      {
+        "speed_band": "(0, 6]",
+        "n": 25938,
+        "mae": 2.94,
+        "rmse": 4.309,
+        "bias": 2.519,
+        "coverage": 0.703
+      },
+      {
+        "speed_band": "(6, 10]",
+        "n": 53624,
+        "mae": 1.49,
+        "rmse": 2.193,
+        "bias": -0.3,
+        "coverage": 0.978
+      },
+      {
+        "speed_band": "(10, 15]",
+        "n": 31866,
+        "mae": 1.887,
+        "rmse": 2.572,
+        "bias": -1.146,
+        "coverage": 0.986
+      },
+      {
+        "speed_band": "(15, 25]",
+        "n": 13124,
+        "mae": 2.462,
+        "rmse": 3.199,
+        "bias": -1.551,
+        "coverage": 0.987
+      },
+      {
+        "speed_band": "(25, 100]",
+        "n": 3807,
+        "mae": 2.196,
+        "rmse": 3.196,
+        "bias": -1.534,
+        "coverage": 0.989
+      }
+    ]
+  }
+}

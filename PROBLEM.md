@@ -43,7 +43,7 @@ Kept: **133 342** May trips (66.7%); June 133 459; July 128 359. Pickups outside
 ## Split
 May = train, June = validation and every choice, July = scored once at the end. By pickup month.
 
-**July disclosure:** July had already been scored once on 2026-11-01 by the skeleton NB04 (linear, f4_shape, unfrozen buffer). All choices since then were made on June; the final July evaluation and this disclosure are in NB04 §4.
+**July disclosure:** July had already been scored once on 2026-11-01 by the skeleton NB04 (linear, f4_shape, unfrozen buffer). All choices since then were made on June. The lock was reset with the project owner's approval, and the frozen configuration was scored once on 2026-11-15 (NB04 §4, `results/july_final.json`).
 
 ## Baseline ladder
 *Expectations were not written before running (see NB01 §5), so only the actual numbers are reported.*
@@ -51,9 +51,10 @@ May = train, June = validation and every choice, July = scored once at the end. 
 | Rung | Model | Actual (June MAE) |
 |---|---|---|
 | 1 | May median fare | 7.901 |
-| 2a | TLC rule \$3.00 + \$3.50/mi (official constants) | see NB04 §1 |
+| 2a | TLC rule \$3.00 + \$3.50/mi (official constants) | 4.894 (bias +4.885: misses the time charge) |
 | 2b | start + per-mile rule fitted on May (\$6.67 + \$3.99/mi) | 2.979 |
 | 3 | decision tree, depth 2 | 3.948 |
+| — | **final: gradient boosting, f7_time_x** | **2.082** (July: 2.002) |
 
 ## Metric and decision
 - Primary: MAE (dollars). Secondary: RMSE (tail) and bias. July: day-block bootstrap CI (2 000 resamples of whole days) of the model vs the median baseline **and** vs the fitted rate rule.

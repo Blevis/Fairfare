@@ -22,8 +22,9 @@ for (const f of ["model.json", "zones.json", "results.json", "eda.json"]) {
 }
 
 const js = readdirSync(join(dist, "assets")).filter((f) => f.endsWith(".js")).map((f) => readFileSync(join(dist, "assets", f), "utf8")).join("\n");
-const routes = new Set([...js.matchAll(/path:"(\/[a-z]*)"/g)].map((m) => m[1]));
-const links = new Set([...js.matchAll(/"#(\/[a-z]*)"/g)].map((m) => m[1]));
+// routes: ROUTES entries (path:`/x`); links: href("/x") calls, minified to f(`/x`). Quotes may be " or `.
+const routes = new Set([...js.matchAll(/path:["`](\/[a-z]*)["`]/g)].map((m) => m[1]));
+const links = new Set([...js.matchAll(/[A-Za-z_$][\w$]*\(["`](\/[a-z]*)["`]\)/g)].map((m) => m[1]));
 for (const l of links) if (!routes.has(l)) errors.push(`link to unknown route #${l}`);
 if (routes.size < 7) errors.push(`expected 7 routes, found ${[...routes].join(", ")}`);
 

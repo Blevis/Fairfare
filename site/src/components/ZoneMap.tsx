@@ -20,7 +20,9 @@ export function ZoneMap({ zones, value, color, tooltip, onPick, selected = [], l
   const [, , vw, vh] = zones.viewBox;
   // Manhattan-focused crop (in viewBox units); the full city otherwise.
   const vb = crop === "manhattan" ? [380, 120, 300, 420] : [0, 0, vw, vh];
-  const h = Math.round((w * vb[3]) / vb[2]);
+  const maxH = 620;                                          // keep tall crops from taking over the page
+  const mw = Math.min(w, Math.round((maxH * vb[2]) / vb[3]));
+  const h = Math.round((mw * vb[3]) / vb[2]);
   const sel = useMemo(() => new Map(selected.map((s) => [s.id, s.color])), [selected]);
   const at = (e: React.MouseEvent) => {
     const r = (e.currentTarget.closest("figure") as HTMLElement).getBoundingClientRect();
@@ -29,7 +31,7 @@ export function ZoneMap({ zones, value, color, tooltip, onPick, selected = [], l
   return (
     <figure className="chart-wrap" ref={ref} style={{ margin: 0 }}>
       {legend && <Legend items={legend} />}
-      <svg className={`zone-map${onPick ? " pick" : ""}`} width={w} height={h} viewBox={vb.join(" ")} role="img" aria-label={title}>
+      <svg className={`zone-map${onPick ? " pick" : ""}`} width={mw} height={h} style={{ display: "block", margin: "0 auto" }} viewBox={vb.join(" ")} role="img" aria-label={title}>
         {zones.zones.filter((z) => z.path).map((z) => {
           const v = value?.(z.id);
           const fill = sel.get(z.id) ?? (v !== undefined && color ? color(v) : undefined);

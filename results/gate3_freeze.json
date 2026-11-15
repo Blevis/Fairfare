@@ -1,0 +1,131 @@
+{
+  "model": "hgb",
+  "feature_set": "f7_time_x",
+  "params": {
+    "loss": "absolute_error",
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 127,
+    "max_iter": 300,
+    "min_samples_leaf": 100
+  },
+  "quote_rule": {
+    "kind": "by_dist_band",
+    "q": 0.9,
+    "b": {
+      "0-1": 2.7921786659259094,
+      "1-2": 3.5839778239657503,
+      "10-20": 6.994198930199115,
+      "2-5": 4.622502528167941,
+      "20+": 3.925144948617674,
+      "5-10": 5.3586072062758
+    },
+    "default": 3.925144948617674
+  },
+  "june_ladder": {
+    "1 median (May)": {
+      "mae": 7.901,
+      "rmse": 12.552,
+      "bias": 3.419
+    },
+    "2a rate rule (TLC $3 + $3.50/mi)": {
+      "mae": 4.894,
+      "rmse": 6.552,
+      "bias": 4.885
+    },
+    "2b rate rule (fit on May)": {
+      "mae": 2.979,
+      "rmse": 4.151,
+      "bias": -0.061
+    },
+    "3 tree depth 2": {
+      "mae": 3.948,
+      "rmse": 5.425,
+      "bias": -0.079
+    },
+    "skeleton: linear f4_shape": {
+      "mae": 2.59,
+      "rmse": 3.672,
+      "bias": -0.07
+    },
+    "FINAL: hgb f7_time_x": {
+      "mae": 2.082,
+      "rmse": 3.234,
+      "bias": 0.421
+    }
+  },
+  "june_quote": {
+    "n": 133459,
+    "coverage": 0.8997519837553106,
+    "mean_overquote": 3.8291296982291367,
+    "mean_cushion": 3.4951963229244796,
+    "mean_shortfall_when_under": 3.331072152984845
+  },
+  "june_rule_comparison": {
+    "additive": {
+      "n": 133459,
+      "coverage": 0.9,
+      "mean_overquote": 3.86,
+      "mean_cushion": 3.511,
+      "mean_shortfall_when_under": 3.493,
+      "worst_gap": 0.097,
+      "gap_dist_band": 0.097,
+      "gap_hour_band": 0.053,
+      "gap_airport_trip": 0.054,
+      "gap_pickup_borough": 0.052
+    },
+    "multiplicative": {
+      "n": 133459,
+      "coverage": 0.9,
+      "mean_overquote": 4.278,
+      "mean_cushion": 3.981,
+      "mean_shortfall_when_under": 2.97,
+      "worst_gap": 0.081,
+      "gap_dist_band": 0.081,
+      "gap_hour_band": 0.047,
+      "gap_airport_trip": 0.081,
+      "gap_pickup_borough": 0.077
+    },
+    "by_dist_band": {
+      "n": 133459,
+      "coverage": 0.899,
+      "mean_overquote": 3.821,
+      "mean_cushion": 3.485,
+      "mean_shortfall_when_under": 3.338,
+      "worst_gap": 0.058,
+      "gap_dist_band": 0.001,
+      "gap_hour_band": 0.058,
+      "gap_airport_trip": 0.01,
+      "gap_pickup_borough": 0.009
+    }
+  },
+  "june_distance_noise": [
+    {
+      "noise_sd": 0.0,
+      "mae": 2.082,
+      "rmse": 3.234,
+      "bias": 0.421,
+      "coverage": 0.9
+    },
+    {
+      "noise_sd": 0.05,
+      "mae": 2.148,
+      "rmse": 3.306,
+      "bias": 0.377,
+      "coverage": 0.899
+    },
+    {
+      "noise_sd": 0.1,
+      "mae": 2.301,
+      "rmse": 3.503,
+      "bias": 0.378,
+      "coverage": 0.893
+    },
+    {
+      "noise_sd": 0.2,
+      "mae": 2.771,
+      "rmse": 4.2,
+      "bias": 0.397,
+      "coverage": 0.87
+    }
+  ]
+}

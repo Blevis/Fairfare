@@ -44,7 +44,9 @@ export interface BarRow { label: string; value: number; lo?: number; hi?: number
 export function HBars({ rows, fmt, xLabel, title, minX = 0 }: { rows: BarRow[]; fmt: (v: number) => string; xLabel: string; title: string; minX?: number }) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const { tip, show, hide } = useTip();
-  const labelW = Math.min(230, w * 0.42), rowH = 34, top = 8, bottom = 36, right = 56;
+  const narrow = w < 560;                     // phones: label above the bar instead of beside it
+  const labelW = narrow ? 8 : Math.min(230, w * 0.42), rowH = narrow ? 50 : 34, top = 8, bottom = 36, right = 56;
+  const barY = narrow ? 18 : 7, barH = narrow ? 22 : rowH - 14, mid = barY + barH / 2;
   const h = top + rows.length * rowH + bottom;
   const max = Math.max(...rows.map((r) => r.hi ?? r.value)) * 1.05;
   const x = lin(minX, max, labelW, w - right);
@@ -57,17 +59,17 @@ export function HBars({ rows, fmt, xLabel, title, minX = 0 }: { rows: BarRow[]; 
           return (
             <g key={r.label} tabIndex={0} onFocus={() => show(x(r.value), y + 6, `${r.label}: ${fmt(r.value)}`)} onBlur={hide}
               onMouseMove={() => show(x(r.value), y + 6, <>{r.label}<br />{fmt(r.value)}{r.lo !== undefined && <> · 95% CI {fmt(r.lo)} to {fmt(r.hi!)}</>}{r.note && <><br />{r.note}</>}</>)} onMouseLeave={hide}>
-              <text x={labelW - 10} y={y + rowH / 2 + 4} textAnchor="end" className="label" style={{ fontWeight: r.highlight ? 700 : 400 }}>{r.label}</text>
-              <rect x={x(minX)} y={y + 7} width={Math.max(1, x(r.value) - x(minX))} height={rowH - 14} rx={3}
+              <text x={narrow ? labelW : labelW - 10} y={narrow ? y + 12 : y + rowH / 2 + 4} textAnchor={narrow ? "start" : "end"} className="label" style={{ fontWeight: r.highlight ? 700 : 400 }}>{r.label}</text>
+              <rect x={x(minX)} y={y + barY} width={Math.max(1, x(r.value) - x(minX))} height={barH} rx={3}
                 fill={r.highlight ? "var(--model)" : "var(--base)"} opacity={r.highlight ? 1 : 0.75} />
               {r.lo !== undefined && r.hi !== undefined && (
                 <g stroke="var(--ink)" strokeWidth={1.4}>
-                  <line x1={x(r.lo)} x2={x(r.hi)} y1={y + rowH / 2} y2={y + rowH / 2} />
-                  <line x1={x(r.lo)} x2={x(r.lo)} y1={y + rowH / 2 - 5} y2={y + rowH / 2 + 5} />
-                  <line x1={x(r.hi)} x2={x(r.hi)} y1={y + rowH / 2 - 5} y2={y + rowH / 2 + 5} />
+                  <line x1={x(r.lo)} x2={x(r.hi)} y1={y + mid} y2={y + mid} />
+                  <line x1={x(r.lo)} x2={x(r.lo)} y1={y + mid - 5} y2={y + mid + 5} />
+                  <line x1={x(r.hi)} x2={x(r.hi)} y1={y + mid - 5} y2={y + mid + 5} />
                 </g>
               )}
-              <text x={x(r.hi ?? r.value) + 6} y={y + rowH / 2 + 4} className="label num">{fmt(r.value)}</text>
+              <text x={x(r.hi ?? r.value) + 6} y={y + mid + 4} className="label num">{fmt(r.value)}</text>
             </g>
           );
         })}

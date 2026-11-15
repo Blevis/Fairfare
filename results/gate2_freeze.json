@@ -1,0 +1,76 @@
+{
+  "feature_set": "f7_time_x",
+  "model": "hgb",
+  "params": {
+    "loss": "absolute_error",
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 127,
+    "max_iter": 300,
+    "min_samples_leaf": 100
+  },
+  "june_selection_table": {
+    "rate rule (TLC $3 + $3.50/mi)": {
+      "mae": 4.894,
+      "rmse": 6.552,
+      "bias": 4.885
+    },
+    "rate rule (fit on May)": {
+      "mae": 2.979,
+      "rmse": 4.151,
+      "bias": -0.061
+    },
+    "linear f7": {
+      "mae": 2.455,
+      "rmse": 3.54,
+      "bias": -0.081
+    },
+    "tree f7 (depth 20.0, leaf 50.0)": {
+      "mae": 2.372,
+      "rmse": 3.482,
+      "bias": -0.102
+    },
+    "hgb f7 (chosen params)": {
+      "mae": 2.082,
+      "rmse": 3.234,
+      "bias": 0.421
+    }
+  },
+  "june_bootstrap": {
+    "hgb f7 (chosen params) vs tree f7 (depth 20.0, leaf 50.0)": {
+      "mae_diff": {
+        "point": -0.28991322201848835,
+        "lo": -0.3119187163639826,
+        "hi": -0.26904945005100656
+      },
+      "rmse_diff": {
+        "point": -0.24806555175038225,
+        "lo": -0.2767735112469053,
+        "hi": -0.21899198860376856
+      }
+    },
+    "hgb f7 (chosen params) vs linear f7": {
+      "mae_diff": {
+        "point": -0.3736444328377777,
+        "lo": -0.3987345207944972,
+        "hi": -0.3458777675168053
+      },
+      "rmse_diff": {
+        "point": -0.3062653876635397,
+        "lo": -0.34247150753435684,
+        "hi": -0.2671708165877923
+      }
+    },
+    "hgb f7 (chosen params) vs rate rule (fit on May)": {
+      "mae_diff": {
+        "point": -0.8974240297771137,
+        "lo": -0.9459587549493046,
+        "hi": -0.8422959128688853
+      },
+      "rmse_diff": {
+        "point": -0.9163980186431915,
+        "lo": -1.0112953410813543,
+        "hi": -0.8175125447661721
+      }
+    }
+  }
+}
