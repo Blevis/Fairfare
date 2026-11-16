@@ -59,7 +59,7 @@ flowchart LR
     style E fill:#ff5a4d,stroke:#ff5a4d,color:#fff
 ```
 
-Notebooks are thin: all logic is imported from the `src/` package, so every stage is testable and re-runnable.
+Notebooks are thin: All logic is imported from the `src/` package, so every stage is testable and re-runnable.
 
 ---
 
